@@ -1,0 +1,27 @@
+FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install required packages, including libGL and libglib
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget cmake build-essential libgl1 libglib2.0-0 && \
+    wget --no-check-certificate https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /miniconda.sh && \
+    bash /miniconda.sh -b -p /opt/miniconda && \
+    rm /miniconda.sh && \
+    /opt/miniconda/bin/conda init && \
+    ln -s /opt/miniconda/bin/conda /usr/local/bin/conda
+
+# Set Miniconda path
+ENV PATH="/opt/miniconda/bin:$PATH"
+
+# Set working directory
+WORKDIR /home
+
+# Copy and install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy all files
+COPY . .
+
+# Set command to start the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]
